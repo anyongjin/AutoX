@@ -140,6 +140,7 @@ class ScriptRuntimeV2(val builder: Builder) : ScriptRuntime(builder) {
 
     override fun onExit() {
         super.onExit()
+        automator.setGestureTraceEnabled(false)
         mutableOkHttp.destroy()
         weakReferenceKey.release()
         shell.recycle(console)
@@ -191,5 +192,4 @@ class ScriptRuntimeV2(val builder: Builder) : ScriptRuntime(builder) {
         }
     }
 }
-
 

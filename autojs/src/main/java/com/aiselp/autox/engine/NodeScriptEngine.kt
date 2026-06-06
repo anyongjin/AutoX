@@ -9,7 +9,10 @@ import com.aiselp.autox.api.JsClipManager
 import com.aiselp.autox.api.JsDebug
 import com.aiselp.autox.api.JsDialogs
 import com.aiselp.autox.api.JsEngines
+import com.aiselp.autox.api.JsGmlKit
+import com.aiselp.autox.api.JsImages
 import com.aiselp.autox.api.JsMedia
+import com.aiselp.autox.api.JsPaddle
 import com.aiselp.autox.api.JsToast
 import com.aiselp.autox.api.JsUi
 import com.aiselp.autox.api.NodeConsole
@@ -139,6 +142,9 @@ class NodeScriptEngine(val context: Context) :
         nativeApiManager.register(JsEngines(this))
         nativeApiManager.register(JsApp(context))
         nativeApiManager.register(JsAccessibility(builder))
+        nativeApiManager.register(JsImages(builder!!.build()))
+        nativeApiManager.register(JsGmlKit())
+        nativeApiManager.register(JsPaddle())
         nativeApiManager.register(JsDebug())
         nativeApiManager.initialize(runtime, global)
     }

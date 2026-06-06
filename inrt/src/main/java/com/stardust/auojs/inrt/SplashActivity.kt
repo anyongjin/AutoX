@@ -11,6 +11,7 @@ import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,6 +20,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
@@ -69,6 +71,11 @@ class SplashActivity : AppCompatActivity() {
     }
 
     private lateinit var projectConfig: ProjectConfig
+    private var slug by mutableStateOf("")
+    private var actionButtonText by mutableStateOf("Start")
+    private var manualStart by mutableStateOf(false)
+    private var startReady by mutableStateOf(false)
+    private var startRunning by mutableStateOf(false)
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -85,7 +92,7 @@ class SplashActivity : AppCompatActivity() {
         controller.systemBarsBehavior =
             WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
 
-        var slug by mutableStateOf(getString(R.string.powered_by_autojs))
+        slug = getString(R.string.powered_by_autojs)
         setContent {
             AppTheme(dynamicColor = true) {
                 permissionCheck.Dialog()
@@ -117,6 +124,24 @@ class SplashActivity : AppCompatActivity() {
                             modifier = Modifier.padding(vertical = 12.dp)
                         )
                     }
+                    if (manualStart) {
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(start = 24.dp, end = 24.dp, bottom = 32.dp),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Button(
+                                onClick = { beginRun() },
+                                enabled = startReady && !startRunning,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(if (startRunning) "Starting..." else actionButtonText)
+                            }
+                        }
+                    } else {
+                        Spacer(modifier = Modifier.padding(bottom = 32.dp))
+                    }
                 }
             }
         }
@@ -133,6 +158,8 @@ class SplashActivity : AppCompatActivity() {
             }
             Log.d(TAG, "onCreate: ${Gson().toJson(projectConfig)}")
             slug = projectConfig.launchConfig.splashText
+            manualStart = projectConfig.launchConfig.manualStart
+            actionButtonText = projectConfig.launchConfig.launchButtonText.ifBlank { "Start" }
             if (appVersionChange) { //非第一次运行
                 projectConfig.launchConfig.let {
                     Pref.setHideLogs(it.isHideLogs)
@@ -149,16 +176,27 @@ class SplashActivity : AppCompatActivity() {
                 delay(1000)
             }
             initModuleResource.join()
-            if (permissionCheck.checkPermission(
-                    this@SplashActivity, projectConfig.launchConfig.permissions
-                )
-            ) {
-                runScript()
-            } else {
-                permissionCheck.requestPermission(
-                    this@SplashActivity, projectConfig.launchConfig.permissions
-                ) { runScript() }
+            startReady = true
+            if (!manualStart) {
+                beginRun()
             }
+        }
+    }
+
+    private fun beginRun() {
+        if (startRunning || !startReady) {
+            return
+        }
+        startRunning = true
+        if (permissionCheck.checkPermission(
+                this@SplashActivity, projectConfig.launchConfig.permissions
+            )
+        ) {
+            runScript()
+        } else {
+            permissionCheck.requestPermission(
+                this@SplashActivity, projectConfig.launchConfig.permissions
+            ) { runScript() }
         }
     }
 
@@ -168,6 +206,7 @@ class SplashActivity : AppCompatActivity() {
                 GlobalProjectLauncher.launch(this)
                 this.finish()
             } catch (e: Exception) {
+                startRunning = false
                 e.printStackTrace()
                 runOnUiThread {
                     Toast.makeText(this@SplashActivity, e.message, Toast.LENGTH_LONG).show()
@@ -179,4 +218,3 @@ class SplashActivity : AppCompatActivity() {
     }
 
 }
-

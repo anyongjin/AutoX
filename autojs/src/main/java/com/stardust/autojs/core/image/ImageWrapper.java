@@ -102,6 +102,7 @@ public class ImageWrapper {
     public Mat getMat() {
         ensureNotRecycled();
         if (mMat == null && mBitmap != null) {
+            mBitmap = ensureSoftwareBitmap(mBitmap);
             mMat = new Mat();
             Utils.bitmapToMat(mBitmap, mMat, true);
         }
@@ -161,8 +162,34 @@ public class ImageWrapper {
             return ImageWrapper.ofMat(mMat.clone());
         }
         if (mMat == null) {
-            return ImageWrapper.ofBitmap(mBitmap.copy(mBitmap.getConfig(), true));
+            return ImageWrapper.ofBitmap(copyBitmap(mBitmap));
         }
-        return new ImageWrapper(mBitmap.copy(mBitmap.getConfig(), true), mMat.clone());
+        return new ImageWrapper(copyBitmap(mBitmap), mMat.clone());
+    }
+
+    private static Bitmap ensureSoftwareBitmap(Bitmap bitmap) {
+        if (bitmap == null) {
+            return null;
+        }
+        Bitmap.Config config = bitmap.getConfig();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && config == Bitmap.Config.HARDWARE) {
+            return copyBitmap(bitmap);
+        }
+        return bitmap;
+    }
+
+    private static Bitmap copyBitmap(Bitmap bitmap) {
+        if (bitmap == null) {
+            return null;
+        }
+        Bitmap.Config config = bitmap.getConfig();
+        if (config == null || (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && config == Bitmap.Config.HARDWARE)) {
+            config = Bitmap.Config.ARGB_8888;
+        }
+        Bitmap copied = bitmap.copy(config, true);
+        if (copied != null) {
+            return copied;
+        }
+        return bitmap.copy(Bitmap.Config.ARGB_8888, true);
     }
 }

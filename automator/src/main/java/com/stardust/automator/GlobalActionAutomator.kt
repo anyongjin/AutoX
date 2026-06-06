@@ -3,6 +3,7 @@ package com.stardust.automator
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.GestureDescription
 import android.graphics.Path
+import android.graphics.PointF
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
@@ -25,6 +26,11 @@ class GlobalActionAutomator(private val mHandler: Handler?, private val serviceP
 
     fun setScreenMetrics(screenMetrics: ScreenMetrics?) {
         mScreenMetrics = screenMetrics
+    }
+
+    fun setGestureTraceEnabled(enabled: Boolean) {
+        GestureTraceOverlay.configure(serviceProvider)
+        GestureTraceOverlay.setEnabled(enabled)
     }
 
     fun back(): Boolean {
@@ -171,8 +177,20 @@ class GlobalActionAutomator(private val mHandler: Handler?, private val serviceP
     }
 
     fun gesture(start: Long, duration: Long, vararg points: IntArray): Boolean {
+        traceGesture(points, duration)
         val path = pointsToPath(points)
         return gestures(GestureDescription.StrokeDescription(path, start, duration))
+    }
+
+    private fun traceGesture(points: Array<out IntArray>, duration: Long) {
+        GestureTraceOverlay.configure(serviceProvider)
+        if (!GestureTraceOverlay.isEnabled() || points.isEmpty()) {
+            return
+        }
+        GestureTraceOverlay.traceGesture(
+            points.map { point -> PointF(scaleX(point[0]).toFloat(), scaleY(point[1]).toFloat()) },
+            duration,
+        )
     }
 
     private fun pointsToPath(points: Array<out IntArray>): Path {
@@ -186,6 +204,7 @@ class GlobalActionAutomator(private val mHandler: Handler?, private val serviceP
     }
 
     fun gestureAsync(start: Long, duration: Long, vararg points: IntArray) {
+        traceGesture(points, duration)
         val path = pointsToPath(points)
         gesturesAsync(GestureDescription.StrokeDescription(path, start, duration))
     }

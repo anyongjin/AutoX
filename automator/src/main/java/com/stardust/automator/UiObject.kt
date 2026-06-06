@@ -156,7 +156,12 @@ open class UiObject(
 
     override fun performAction(action: Int, bundle: Bundle): Boolean {
         return try {
-            super.performAction(action, bundle)
+            val bounds = if (shouldTraceNodeAction(action)) Rect(bounds()) else null
+            val result = super.performAction(action, bundle)
+            if (result && bounds != null) {
+                GestureTraceOverlay.traceNodeClick(bounds, action == AccessibilityNodeInfoCompat.ACTION_LONG_CLICK)
+            }
+            result
         } catch (e: IllegalStateException) {
             // FIXME: 2017/5/5
             false
@@ -166,11 +171,21 @@ open class UiObject(
 
     override fun performAction(action: Int): Boolean {
         return try {
-            super.performAction(action)
+            val bounds = if (shouldTraceNodeAction(action)) Rect(bounds()) else null
+            val result = super.performAction(action)
+            if (result && bounds != null) {
+                GestureTraceOverlay.traceNodeClick(bounds, action == AccessibilityNodeInfoCompat.ACTION_LONG_CLICK)
+            }
+            result
         } catch (e: IllegalStateException) {
             // FIXME: 2017/5/5
             false
         }
+    }
+
+    private fun shouldTraceNodeAction(action: Int): Boolean {
+        return action == AccessibilityNodeInfoCompat.ACTION_CLICK
+            || action == AccessibilityNodeInfoCompat.ACTION_LONG_CLICK
     }
 
     fun click(): Boolean {

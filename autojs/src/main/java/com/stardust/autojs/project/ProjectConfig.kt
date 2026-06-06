@@ -164,6 +164,10 @@ data class LaunchConfig(
     var displaySplash: Boolean = true,
     @SerializedName("hideLogs")
     var isHideLogs: Boolean = false,
+    @SerializedName("manualStart")
+    var manualStart: Boolean = false,
+    @SerializedName("launchButtonText")
+    var launchButtonText: String = "Start",
     @SerializedName("permissions")
     var permissions: List<String> = emptyList(),
     @SerializedName("serviceDesc")

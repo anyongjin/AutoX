@@ -3,6 +3,19 @@ plugins {
     id("com.android.application")
     id("kotlin-android")
 }
+
+fun projectStringProperty(name: String): String? =
+    providers.gradleProperty(name).orNull?.trim()?.takeIf { it.isNotEmpty() }
+
+fun projectIntProperty(name: String): Int? =
+    projectStringProperty(name)?.toIntOrNull()
+
+val cliApplicationId = projectStringProperty("autoxApplicationId")
+val cliVersionName = projectStringProperty("autoxVersionName")
+val cliVersionCode = projectIntProperty("autoxVersionCode")
+val cliAppName = projectStringProperty("autoxAppName") ?: "inrt"
+val extraAssetsDir = projectStringProperty("autoxExtraAssetsDir")
+
 java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(versions.javaVersionInt))
@@ -12,11 +25,11 @@ java {
 android {
     compileSdk = versions.compile
     defaultConfig {
-        applicationId = "org.autojs.autoxjs.inrt"
+        applicationId = cliApplicationId ?: "org.autojs.autoxjs.inrt"
         minSdk = versions.mini
         targetSdk = versions.target
-        versionCode = versions.appVersionCode
-        versionName = versions.appVersionName
+        versionCode = cliVersionCode ?: versions.appVersionCode
+        versionName = cliVersionName ?: versions.appVersionName
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 //        multiDexEnabled = true
 //        buildConfigField("boolean","isMarket","true") // 这是有注册码的版本
@@ -66,11 +79,11 @@ android {
     productFlavors {
         create("common") {
             buildConfigField("boolean", "isMarket", "false")
-            manifestPlaceholders.putAll(mapOf("appName" to "inrt"))
+            manifestPlaceholders.putAll(mapOf("appName" to cliAppName))
             ndk.abiFilters.addAll(listOf("armeabi-v7a", "arm64-v8a"))
         }
         create("template") {
-            manifestPlaceholders.putAll(mapOf("appName" to "template"))
+            manifestPlaceholders.putAll(mapOf("appName" to cliAppName))
             packagingOptions.apply {
                 jniLibs.excludes.add("*")
             }
@@ -81,6 +94,7 @@ android {
         named("main") {
             jniLibs.srcDir("/libs")
             res.srcDirs("src/main/res", "src/main/res-i18n")
+            extraAssetsDir?.let { assets.srcDir(it) }
         }
     }
     packaging {

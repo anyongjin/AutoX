@@ -29,6 +29,14 @@ export function back() {
     return invokeDefault<boolean>(automator, 'back')
 }
 
+export function setGestureTraceEnabled(enabled: boolean) {
+    return invokeDefault<boolean>(automator, 'setGestureTraceEnabled', [enabled])
+}
+
+export function isGestureTraceEnabled() {
+    return invokeDefault<boolean>(automator, 'isGestureTraceEnabled')
+}
+
 export function click(x: number, y: number) {
     return invokeDefault<boolean>(automator, 'click', [x, y])
 }

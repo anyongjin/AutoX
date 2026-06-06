@@ -363,7 +363,32 @@ class SimpleActionAutomator(
                     return@GlobalActionAutomator mAccessibilityBridge.service!!
                 }
         }
+        ensureGestureTraceReady()
         mGlobalActionAutomator.setScreenMetrics(mScreenMetrics)
+    }
+
+    private fun ensureGestureTraceReady() {
+        ensureAccessibilityServiceEnabled()
+        if (!::mGlobalActionAutomator.isInitialized) {
+            return
+        }
+        mGlobalActionAutomator.setGestureTraceEnabled(GestureTraceState.enabled)
+    }
+
+    @ScriptInterface
+    fun setGestureTraceEnabled(enabled: Boolean): Boolean {
+        GestureTraceState.enabled = enabled
+        if (enabled) {
+            prepareForGesture()
+        } else if (::mGlobalActionAutomator.isInitialized) {
+            mGlobalActionAutomator.setGestureTraceEnabled(false)
+        }
+        return GestureTraceState.enabled
+    }
+
+    @ScriptInterface
+    fun isGestureTraceEnabled(): Boolean {
+        return GestureTraceState.enabled
     }
 
     @ScriptInterface
@@ -408,6 +433,9 @@ class SimpleActionAutomator(
 
     private fun performAction(simpleAction: SimpleAction): Boolean {
         ensureAccessibilityServiceEnabled()
+        if (::mGlobalActionAutomator.isInitialized) {
+            ensureGestureTraceReady()
+        }
         if (AccessibilityConfig.isUnintendedGuardEnabled() && isRunningPackageSelf) {
             return false
         }
@@ -423,6 +451,11 @@ class SimpleActionAutomator(
 
     fun setScreenMetrics(metrics: ScreenMetrics) {
         mScreenMetrics = metrics
+    }
+
+    private object GestureTraceState {
+        @Volatile
+        var enabled: Boolean = false
     }
 
 }
