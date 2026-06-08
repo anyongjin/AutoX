@@ -9,6 +9,7 @@ import com.aiselp.autox.api.JsClipManager
 import com.aiselp.autox.api.JsDebug
 import com.aiselp.autox.api.JsDialogs
 import com.aiselp.autox.api.JsEngines
+import com.aiselp.autox.api.JsFloaty
 import com.aiselp.autox.api.JsGmlKit
 import com.aiselp.autox.api.JsImages
 import com.aiselp.autox.api.JsMedia
@@ -73,6 +74,13 @@ class NodeScriptEngine(val context: Context) :
         AutoJs.instance.createRuntimeBuilder()
     } catch (e: Throwable) {
         null
+    }
+    private val helperRuntime: ScriptRuntimeV2? by lazy {
+        try {
+            builder?.build()
+        } catch (e: Throwable) {
+            null
+        }
     }
 
     init {
@@ -142,7 +150,10 @@ class NodeScriptEngine(val context: Context) :
         nativeApiManager.register(JsEngines(this))
         nativeApiManager.register(JsApp(context))
         nativeApiManager.register(JsAccessibility(builder))
-        nativeApiManager.register(JsImages(builder!!.build()))
+        helperRuntime?.let {
+            nativeApiManager.register(JsImages(it))
+            nativeApiManager.register(JsFloaty(it))
+        }
         nativeApiManager.register(JsGmlKit())
         nativeApiManager.register(JsPaddle())
         nativeApiManager.register(JsDebug())

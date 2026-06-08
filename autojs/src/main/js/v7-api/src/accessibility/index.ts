@@ -10,6 +10,7 @@
  */
 
 import { invokeDefault, android, loadClass } from '@/java'
+import * as images from '@/images'
 const { automator, currentActivity: currentActivity2,
     currentPackage: currentPackage2,
     selector, createStrokeDescriptionArray } = Autox.accessibility;
@@ -121,7 +122,14 @@ export function swipe(x1: number, y1: number, x2: number, y2: number, duration: 
 }
 
 export function takeScreenshot() {
-    return invokeDefault<Autox.Image>(automator, 'takeScreenshot2Sync')
+    try {
+        return invokeDefault<Autox.Image>(automator, 'takeScreenshot2Sync')
+    } catch (error) {
+        if (images.requestScreenCapture()) {
+            return images.captureScreen()
+        }
+        throw error
+    }
 }
 /**
  * 显示电源设置。

@@ -47,8 +47,9 @@ class SimpleActionAutomator(private val mAccessibilityBridge: AccessibilityBridg
             Dispatchers.Default.asExecutor(),
             object : AccessibilityService.TakeScreenshotCallback {
                 override fun onSuccess(screenshot: AccessibilityService.ScreenshotResult) {
-                    val bitmap =
+                    val hardwareBitmap =
                         Bitmap.wrapHardwareBuffer(screenshot.hardwareBuffer, screenshot.colorSpace)
+                    val bitmap = hardwareBitmap?.copy(Bitmap.Config.ARGB_8888, false) ?: hardwareBitmap
                     val imageWrapper = ImageWrapper.ofBitmap(bitmap)
                     callback?.invoke(imageWrapper, 0)
                 }

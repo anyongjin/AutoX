@@ -1,4 +1,5 @@
 import { asGlobal, defineGetter } from "@/utils";
+import images from "../images";
 
 var r = runtime;
 function performAction(action: any, args: any[]) {
@@ -167,7 +168,14 @@ function auto(mode: "fast" | "normal") {
 }
 
 auto.takeScreenshot = function (): Autox.Image {
-    return r.automator.takeScreenshot2Sync();
+    try {
+        return r.automator.takeScreenshot2Sync();
+    } catch (error) {
+        if ((images as any).requestScreenCapture(undefined)) {
+            return (images as any).captureScreen();
+        }
+        throw error;
+    }
 };
 
 auto.takeScreenshotAsync = function (callback: (image: Autox.Image, errCode: number) => void) {

@@ -115,6 +115,10 @@ class Floaty(private val mUiHandler: UiHandler, ui: UI, private val mRuntime: Sc
             return JsViewHelper.findViewByStringId(mWindow.getContentView(), id)
         }
 
+        fun getContentView(): View {
+            return mWindow.getContentView()
+        }
+
         val x: Int
             get() = mWindow.windowBridge.x
 
@@ -129,7 +133,10 @@ class Floaty(private val mUiHandler: UiHandler, ui: UI, private val mRuntime: Sc
 
         fun setSize(w: Int, h: Int) {
             runWithWindow {
-                mWindow.windowBridge.updateMeasure(w, h)
+                try {
+                    mWindow.windowBridge.updateMeasure(w, h)
+                } catch (_: Throwable) {
+                }
                 ViewUtil.setViewMeasure(mWindow.windowView, w, h)
             }
         }
@@ -220,7 +227,10 @@ class Floaty(private val mUiHandler: UiHandler, ui: UI, private val mRuntime: Sc
 
         fun setSize(w: Int, h: Int) {
             runWithWindow {
-                mWindow.windowBridge.updateMeasure(w, h)
+                try {
+                    mWindow.windowBridge.updateMeasure(w, h)
+                } catch (_: Throwable) {
+                }
                 ViewUtil.setViewMeasure(mWindow.rootView, w, h)
             }
         }
